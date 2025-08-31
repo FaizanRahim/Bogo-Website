@@ -1,13 +1,32 @@
 import React, { useState } from "react";
-import logo from "../assets/logo.png"; // Easistar icon logo
-import eyeIcon from "../assets/Eye Open.png"; // Eye icon
+import { useNavigate, Link } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import logo from "../assets/bogo.png";
+import eyeIcon from "../assets/Eye Open.png";
 import signinImage from "../assets/signin.png";
+import logoo from "../assets/logo.png";
 
 export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [enabled, setEnabled] = useState(true); // ✅ Toggle state
+
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
+  };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -16,20 +35,10 @@ export default function SignIn() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 md:p-12 lg:p-16">
         <div className="w-full max-w-md bg-[#0d0d0d] p-6 sm:p-8 rounded-xl shadow-lg text-white">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-6">
-            <img src={logo} alt="Easistar Logo" className="w-7 h-7 sm:w-8 sm:h-8" />
-            <span className="font-semibold text-lg sm:text-xl">Easistar</span>
+          <div className="flex items-center gap-4 mb-6">
+            <span className="font-semibold text-lg sm:text-xl"><img src={logo} alt="Easistar Logo" /></span>
           </div>
 
-          {/* Back Arrow */}
-          <button
-            aria-label="Go back"
-            className="mb-6 text-gray-500 hover:text-gray-300 text-lg sm:text-xl"
-          >
-            ←
-          </button>
-
-          {/* Welcome Text */}
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1">
             Welcome to Easistar
           </h1>
@@ -37,12 +46,16 @@ export default function SignIn() {
             Login to your account
           </p>
 
+          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+
           {/* Email Input */}
           <label className="block mb-1 text-sm">Email</label>
           <input
             type="email"
             placeholder="example@email.com"
             className="w-full p-3 mb-5 rounded border border-gray-700 bg-transparent text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           {/* Password Input */}
@@ -52,6 +65,8 @@ export default function SignIn() {
               type={passwordVisible ? "text" : "password"}
               placeholder="Enter your password"
               className="w-full p-3 rounded border border-gray-700 bg-transparent text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"
@@ -63,29 +78,37 @@ export default function SignIn() {
             </button>
           </div>
 
-          {/* Forgot Password */}
-          <div className="text-right mb-6">
-            <a href="#" className="text-green-500 text-xs sm:text-sm hover:underline">
-              Forgot Password?
-            </a>
+          {/* ✅ Yes / No Toggle */}
+          <div className="flex items-center justify-between mb-6">
+            <span className="text-sm">Remember Me</span>
+            <button
+              onClick={() => setEnabled(!enabled)}
+              className={`${
+                enabled ? "bg-green-500" : "bg-gray-400"
+              } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+            >
+              <span
+                className={`${
+                  enabled ? "translate-x-6" : "translate-x-1"
+                } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+              />
+            </button>
           </div>
 
           {/* Sign In Button */}
-          <button className="w-full bg-green-500 hover:bg-green-600 transition text-black font-semibold py-3 rounded mb-6 text-sm sm:text-base">
+          <button
+            onClick={handleLogin}
+            className="w-full bg-green-500 hover:bg-green-600 transition text-black font-semibold py-3 rounded mb-6 text-sm sm:text-base"
+          >
             Sign In
           </button>
 
           {/* Register Link */}
           <p className="text-gray-400 text-xs sm:text-sm text-center">
             Don&apos;t have an account?{" "}
-            <a href="#" className="text-green-500 hover:underline">
+            <Link to="/register" className="text-green-500 hover:underline">
               Register
-            </a>
-          </p>
-
-          {/* Footer */}
-          <p className="text-gray-600 text-[10px] sm:text-xs text-center mt-10">
-            ©2022 Managerin All Right Reserved.
+            </Link>
           </p>
         </div>
       </div>

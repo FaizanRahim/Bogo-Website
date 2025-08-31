@@ -1,38 +1,8 @@
-// import React from 'react'
-
-
-
-// import SignIn from './components/SignIn'
-// import Forgot from './components/Forget'
-// import Otp from './components/Otp'
-// import NewPassword from './components/NewPassword'
-// import Register from './components/Register'
-// import Dashboard from './components/Administration/Dashboard'
-
-// const App = () => {
-//   return (
-//     <div>
-//       <SignIn/>
-//       <Forgot/>
-//       <Otp/>
-//       <NewPassword/>
-//       <Register/>
-//       <Dashboard/>
-
-
-//     </div>
-//   )
-// }
-
-// export default App
-
-
-
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 
-
-// import your 21 pages here
 import RoleManagement from "./components/Administration/RoleManagement";
 import Customers from "./components/Administration/Customers";
 import Merchants from "./components/Administration/Merchants";
@@ -54,17 +24,29 @@ import XPpointManagement from "./components/Administration/XPpointManagement";
 import AppManagement from "./components/Administration/AppManagement";
 import OffersManagement from "./components/Administration/OffersManagement";
 
-// Dashboard Home page
 import DashboardHome from "./components/Administration/DashboardHome";
-
+import Dashboard from "./components/Administration/Dashboard";
 
 import SignIn from "./components/SignIn";
 import Forgot from "./components/Forget";
-import Otp from "./components/Otp";
-import NewPassword from "./components/NewPassword";
+import ForgetPassword from "./components/ForgotPassword";
 import Register from "./components/Register";
-import Dashboard from "./components/Administration/Dashboard";
 
+function ProtectedRoute({ children }) {
+  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  return user ? children : <Navigate to="/" />;
+}
 
 const App = () => {
   return (
@@ -73,12 +55,18 @@ const App = () => {
         {/* Auth Routes */}
         <Route path="/" element={<SignIn />} />
         <Route path="/forgot" element={<Forgot />} />
-        <Route path="/otp" element={<Otp />} />
-        <Route path="/new-password" element={<NewPassword />} />
+        <Route path="/new-password" element={<ForgetPassword />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Dashboard Layout with nested routes */}
-        <Route path="/dashboard" element={<Dashboard />}>
+        {/* Protected Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashboardHome />} />
           <Route path="role-management" element={<RoleManagement />} />
           <Route path="customers" element={<Customers />} />
